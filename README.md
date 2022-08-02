@@ -10,7 +10,8 @@ TimeDistributed Dense
 
 Dense
 - 마지막 dim에 Dense 레이어 적용
-- ex) input shape : (배치,128) => (배치,1)
-      input shape : (배치,128,128) => (배치,128,1)
-      input shape : (배치,time,feature) => (배치,time,feature)
+- ex) 
+- input shape : (배치,128) => (배치,1)
+- input shape : (배치,128,128) => (배치,128,1)
+- input shape : (배치,time,feature) => (배치,time,feature)
       
