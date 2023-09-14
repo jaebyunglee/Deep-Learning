@@ -15,3 +15,7 @@ Dense
 - input shape : (배치,128,128) => (배치,128,1)
 - input shape : (배치,time,feature) => (배치,time,1)
       
+
+
+# Autograph Warning 끄기 
+tf.autograph.set_verbosity(0)
