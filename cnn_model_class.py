@@ -75,6 +75,11 @@ class CnnModel():
                                                   name = 'dense')(self.flatten)
         self.cnn_model = tf.keras.Model(inputs = self.input_layer, outputs = self.output_layer)
 
+        """
+        Custom Metric 예시
+        1. Custom Loss function도 같음 -> numpy로 loss함수를 만들고 이거를 tf.numpy_function으로 감싸준다
+        2. return값은 tf.cast(..., tf.float32)로 변경
+        """
         @tf.function
         def wacc(y_true, y_pred):
 
@@ -96,12 +101,12 @@ class CnnModel():
                 y_pred = (y_pred>=0.5)+0
 
                 w_acc_score = accracy_score(y_true, y_pred, sample_weight = sample_weight)
-                w_acc_score = tf.cast(w_acc_score, tf.float32) # retunr 값은 tf.float32
+                w_acc_score = tf.cast(w_acc_score, tf.float32) # return 값은 tf.float32
 
                 return w_acc_score
 
             score = tf.numpy_function(my_numpy_func, [y_true, y_pred], tf.float32) #파이썬 함수를 감싸서 tf로 사용
-            score = tf.cast(score, tf.float32) # retunr 값은 tf.float32
+            score = tf.cast(score, tf.float32) # return 값은 tf.float32
 
             return score 
                 
