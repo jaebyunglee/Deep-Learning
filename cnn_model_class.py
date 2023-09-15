@@ -18,7 +18,8 @@ class CnnModel():
         2) init_bias = 0
         
         
-        >> kinit 종류
+        >> kinit 종류 (아래 종류를 스트링으로 넣으면됨)
+        ex - self.kinit : 'orthogonal'
         random_normal / glorot_normal / he_normal
         random_uniform / glorot_uniform / he_uniform
         orthogonal
