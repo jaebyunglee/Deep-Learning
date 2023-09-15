@@ -68,6 +68,7 @@ class CnnModel():
                                                   bias_initializer = output_bias,
                                                   name = 'dense')(self.flatten)
         self.cnn_model = tf.keras.Model(inputs = self.input_layer, outputs = self.output_layer)
-        self.cnn_model.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['AUC','acc'])
+        self.cnn_model.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['AUC','acc']) 
+        #self.cnn_model.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['AUC','acc'], run_eagerly=true) # Deberg
 
         return self.cnn_model
