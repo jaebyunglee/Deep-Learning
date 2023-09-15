@@ -1,4 +1,9 @@
+import numpy as np
 import tensorflow as tf
+
+from tensorflow.keras.callbakcs import Callback
+from sklearn.utils.class_weight import compute_sample_weight
+from sklearn.metrics import accuracy_score
 
 class CnnModel():
     def __init__(self, input_shape, Depth, kernelN, kernelSize, strides, l2, dropR, init_bias, kinit):
@@ -68,7 +73,41 @@ class CnnModel():
                                                   bias_initializer = output_bias,
                                                   name = 'dense')(self.flatten)
         self.cnn_model = tf.keras.Model(inputs = self.input_layer, outputs = self.output_layer)
-        self.cnn_model.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['AUC','acc']) 
-        #self.cnn_model.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['AUC','acc'], run_eagerly=true) # Deberg
+
+        @tf.function
+        def wacc(y_true, y_pred):
+
+            def my_numpy_func(y_true, y_pred):
+                y_true = y_true.squeeze()
+                y_pred = y_pred.squeeze()
+
+                length = len(y_true)
+                try :
+                    pos_w = length/len(y_true[y_true==1])
+                    neg_w = length/len(y_true[y_true==0])
+                except ZeroDivisionError :
+                    pos_w = 1
+                    neg_w = 1
+
+                sample_weight = np.zeros(y_true.shape)
+                sample_weight[y_true == 1] = pos_w
+                sample_weight[y_true == 0] = neg_w
+                y_pred = (y_pred>=0.5)+0
+
+                w_acc_score = accracy_score(y_true, y_pred, sample_weight = sample_weight)
+                w_acc_score = tf.cast(w_acc_score, tf.float32) # retunr 값은 tf.float32
+
+                return w_acc_score
+
+            score = tf.numpy_function(my_numpy_func, [y_true, y_pred], tf.float32) #파이썬 함수를 감싸서 tf로 사용
+            score = tf.cast(score, tf.float32) # retunr 값은 tf.float32
+
+            return score 
+                
+                
+                    
+        
+        self.cnn_model.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['AUC','acc',wacc]) 
+        #self.cnn_model.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['AUC','acc',wacc], run_eagerly=true) # Deberg
 
         return self.cnn_model
