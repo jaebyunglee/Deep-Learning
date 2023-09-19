@@ -18,8 +18,8 @@ Dense
 
 
 # Autograph Warning 끄기 (둘다 적용해야 꺼짐)
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR) # Keras 코드 수행 시에 출력되는 Warning을 포함한 기타 메시지 제거
-tf.autograph.set_verbosity(0) # autograph warning 제거
+- tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR) # Keras 코드 수행 시에 출력되는 Warning을 포함한 기타 메시지 제거
+- tf.autograph.set_verbosity(0) # autograph warning 제거
 
 # Model 계산 과정에서 print 해보기
 compile에 run_eagerly=True 추가 !!
