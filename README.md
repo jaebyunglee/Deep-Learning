@@ -26,11 +26,15 @@ compile에 run_eagerly=True 추가 !!
 custom loss나 custom metric 만들 때 계산 과정을 볼 수 있음
 
 ### 1) example code
+"""
 def custom loss(y_true, y_pred):
     print(y_true)
     print(y_pred)
     score = .......
     return score
+"""
+
+
 
 
 
