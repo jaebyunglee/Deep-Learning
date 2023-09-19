@@ -83,6 +83,9 @@ class CnnModel():
         @tf.function
         def wacc(y_true, y_pred):
 
+            """
+            Numpy로 작성된 코드
+            """
             def my_numpy_func(y_true, y_pred):
                 y_true = y_true.squeeze()
                 y_pred = y_pred.squeeze()
@@ -105,6 +108,9 @@ class CnnModel():
 
                 return w_acc_score
 
+            """
+            Numpy로 작성된 함수를 tf에서 사용할수 있게 적용
+            """
             score = tf.numpy_function(my_numpy_func, [y_true, y_pred], tf.float32) #파이썬 함수를 감싸서 tf로 사용
             score = tf.cast(score, tf.float32) # return 값은 tf.float32
 
