@@ -13,22 +13,6 @@ tf.random.set_seed(1234)
 
 tf.keras.backend.clear_session()
 
-
-# IMPORT PACHAGES
-import numpy as np
-import tensorflow as tf
-from tensorflow.keras.callbacks import Callback
-
-np.random.seed(1234)
-tf.random.set_seed(1234)
-
-
-
-
-# Auto Encoder Class
-
-tf.keras.backend.clear_session()
-
 # 사용자 정의 콜백 클래스
 class CustomProgress(Callback):
     def on_epoch_end(self, epoch, logs = None):
