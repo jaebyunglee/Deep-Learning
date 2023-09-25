@@ -14,6 +14,22 @@ tf.random.set_seed(1234)
 tf.keras.backend.clear_session()
 
 # 사용자 정의 콜백 클래스
+
+"""
+n 에폭마다 모델 저장
+model_save_path = '/path/model_epoch_{}.h5'
+model_checkpoint_callback = CustomModelCheckPoint(freq = 10, directory = model_save_path)
+model.fit(x,y,callbacks = [model_checkpoint_callback])
+"""
+class CustomModelCheckPoint(Callback):
+    def __init__(self,freq, directory):
+        super().__init__()
+        self.freq = freq
+        self.directory = directory
+    def on_epoch_begin(self, epoch, logs = None):
+        if self.freq > 0 and epoch % self.freq == 0:
+            self.model.save(self.directory.format(str(epoch).zfill(3)))
+
 class CustomProgress(Callback):
     def on_epoch_end(self, epoch, logs = None):
         if (epoch + 1) % 5 == 0 : 
