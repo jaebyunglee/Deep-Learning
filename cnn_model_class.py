@@ -37,7 +37,7 @@ class CnnModel():
         
         """
         >> 예제코드
-        cnn_model = CnnModel((300,300,3), 8, 4, 3, 1, 0.01, 0.5, 0, 'orthogonal').cnn_model
+        cnn_model = CnnModel((300,300,3), 8, 4, 3, 1, 0.01, 0.003, 0.1, 0, 'orthogonal').cnn_model
         cnn_model.summary()
         
         >> init_bias True 이면 1번으로 아니면 2번으로
