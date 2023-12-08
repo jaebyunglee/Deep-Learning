@@ -5,6 +5,33 @@ from tensorflow.keras.callbakcs import Callback
 from sklearn.utils.class_weight import compute_sample_weight
 from sklearn.metrics import accuracy_score
 
+
+np.random.seed(1234)
+np.random.set_seed(1234)
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+tf.autograph.set_verbosity(0)
+
+def w_acc_fn(y_true, y_pred):
+    y_true = y_true.squeeze()
+    y_pred = y_pred.squeeze()
+    
+    length = len(y_true)
+    try :
+        pos_w = length/len(y_true[y_true==1])
+        neg_w = length/len(y_true[y_true==0])
+    except ZeroDivisionError :
+        pos_w = 1
+        neg_w = 1
+    
+    sample_weight = np.zeros(y_true.shape)
+    sample_weight[y_true == 1] = pos_w
+    sample_weight[y_true == 0] = neg_w
+    y_pred = (y_pred>=0.5)+0
+    
+    w_acc_score = accuracy_score(y_true, y_pred, sample_weight = sample_weight)
+    return w_acc_score
+
+
 class CnnModel():
     def __init__(self, input_shape, Depth, kernelN, kernelSize, strides, l2, dropR, init_bias, kinit):
         
@@ -87,25 +114,8 @@ class CnnModel():
             Numpy로 작성된 코드
             """
             def my_numpy_func(y_true, y_pred):
-                y_true = y_true.squeeze()
-                y_pred = y_pred.squeeze()
-
-                length = len(y_true)
-                try :
-                    pos_w = length/len(y_true[y_true==1])
-                    neg_w = length/len(y_true[y_true==0])
-                except ZeroDivisionError :
-                    pos_w = 1
-                    neg_w = 1
-
-                sample_weight = np.zeros(y_true.shape)
-                sample_weight[y_true == 1] = pos_w
-                sample_weight[y_true == 0] = neg_w
-                y_pred = (y_pred>=0.5)+0
-
-                w_acc_score = accuracy_score(y_true, y_pred, sample_weight = sample_weight)
+                w_acc_score = w_acc_fn(y_true, y_pred)
                 w_acc_score = tf.cast(w_acc_score, tf.float32) # return 값은 tf.float32
-
                 return w_acc_score
 
             """
