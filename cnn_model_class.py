@@ -33,7 +33,7 @@ def w_acc_fn(y_true, y_pred):
 
 
 class CnnModel():
-    def __init__(self, input_shape, Depth, kernelN, kernelSize, strides, l2, dropR, init_bias, kinit):
+    def __init__(self, input_shape, Depth, kernelN, kernelSize, strides, l2, lr, dropR, init_bias, kinit):
         
         """
         >> 예제코드
@@ -57,6 +57,7 @@ class CnnModel():
         self.kernelSize  = kernelSize
         self.strides     = strides
         self.l2          = l2
+        self.lr          = lr
         self.dropR       = dropR
         self.init_bias   = init_bias
         self.kinit       = kinit
@@ -129,7 +130,7 @@ class CnnModel():
                 
                     
         
-        self.cnn_model.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['AUC','acc',wacc]) 
-        #self.cnn_model.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['AUC','acc',wacc], run_eagerly=true) # Deberg
+        self.cnn_model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate = self.lr), loss = 'binary_crossentropy', metrics = ['AUC','acc',wacc]) 
+        #self.cnn_model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate = self.lr)', loss = 'binary_crossentropy', metrics = ['AUC','acc',wacc], run_eagerly=true) # Deberg
 
         return self.cnn_model
