@@ -103,7 +103,7 @@ class CnnModel():
                 sample_weight[y_true == 0] = neg_w
                 y_pred = (y_pred>=0.5)+0
 
-                w_acc_score = accracy_score(y_true, y_pred, sample_weight = sample_weight)
+                w_acc_score = accuracy_score(y_true, y_pred, sample_weight = sample_weight)
                 w_acc_score = tf.cast(w_acc_score, tf.float32) # return 값은 tf.float32
 
                 return w_acc_score
