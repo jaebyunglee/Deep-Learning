@@ -132,6 +132,7 @@ class CnnModel():
                 beta : 0.5 -> Pricision을 2배 중요하게 생각
                 beta : 2.0 -> Recall을    2배 중요하게 생각
                 """
+                y_pred = (y_pred >= 0.5) + 0
                 _score = fbeta_score(y_true, y_pred, beta = 0.5, zero_divison = 0)
                 _score = tf.cast(_score, tf.float32) # return 값은 tf.float32
                 return _score
