@@ -3,7 +3,7 @@ import tensorflow as tf
 
 from tensorflow.keras.callbakcs import Callback
 from sklearn.utils.class_weight import compute_sample_weight
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score, fbeta_score
 
 
 np.random.seed(1234)
@@ -110,7 +110,6 @@ class CnnModel():
         """
         @tf.function
         def wacc(y_true, y_pred):
-
             """
             Numpy로 작성된 코드
             """
@@ -124,12 +123,25 @@ class CnnModel():
             """
             score = tf.numpy_function(my_numpy_func, [y_true, y_pred], tf.float32) #파이썬 함수를 감싸서 tf로 사용
             score = tf.cast(score, tf.float32) # return 값은 tf.float32
-
             return score 
                 
-                
+        @tf.function
+        def fbeta(y_true, y_pred):
+            def my_numpy_func(y_true, y_pred):
+                """
+                beta : 0.5 -> Pricision을 2배 중요하게 생각
+                beta : 2.0 -> Recall을    2배 중요하게 생각
+                """
+                _score = fbeta_score(y_true, y_pred, beta = 0.5, zero_divison = 0)
+                _score = tf.cast(_score, tf.float32) # return 값은 tf.float32
+                return _score
+            """
+            Numpy로 작성된 함수를 tf에서 사용할수 있게 적용
+            """
+            score = tf.numpy_function(my_numpy_func, [y_true, y_pred], tf.float32) #파이썬 함수를 감싸서 tf로 사용
+            score = tf.cast(score, tf.float32) # return 값은 tf.float32
+            resutn score
                     
-        
         self.cnn_model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate = self.lr), loss = 'binary_crossentropy', metrics = ['AUC','acc',wacc]) 
         #self.cnn_model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate = self.lr)', loss = 'binary_crossentropy', metrics = ['AUC','acc',wacc], run_eagerly=true) # Deberg
 
