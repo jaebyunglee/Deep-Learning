@@ -33,7 +33,7 @@ class CustomModelCheckPoint(Callback):
 class CustomProgress(Callback):
     def on_epoch_end(self, epoch, logs = None):
         if (epoch + 1) % 5 == 0 : 
-            print('EPOCH : {}, Ttrain Loss : {:.4f}, Valid Loss : {:.4f}'.format(epoch + 1, logs['loss'],logs['val_loss']))
+            print('EPOCH : {}, Ttrain Loss : {:.4f}, Valid Loss : {:.4f}'.format(epoch + 1, logs['loss'],logs['val_loss']), flush = True)
             
 
             
