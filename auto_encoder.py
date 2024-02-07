@@ -1,4 +1,5 @@
 # IMPORT PACHAGES
+import datetime
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import Callback
@@ -33,7 +34,7 @@ class CustomModelCheckPoint(Callback):
 class CustomProgress(Callback):
     def on_epoch_end(self, epoch, logs = None):
         if (epoch + 1) % 5 == 0 : 
-            print('EPOCH : {}, Ttrain Loss : {:.4f}, Valid Loss : {:.4f}'.format(epoch + 1, logs['loss'],logs['val_loss']), flush = True)
+            print('[{}] - EPOCH : {}, Ttrain Loss : {:.4f}, Valid Loss : {:.4f}'.format(datetime.datetime.now(),epoch + 1, logs['loss'],logs['val_loss']), flush = True)
             
 
             
