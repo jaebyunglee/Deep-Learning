@@ -1,4 +1,4 @@
-# IMPORT PACHAGES
+# IMPORT PAKAGES
 import datetime
 import numpy as np
 import tensorflow as tf
