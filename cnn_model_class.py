@@ -1,14 +1,15 @@
+import math
 import datetime
 import numpy as np
 import tensorflow as tf
 
-from tensorflow.keras.callbakcs import Callback
+from tensorflow.keras.callbacks import Callback
 from sklearn.utils.class_weight import compute_sample_weight
 from sklearn.metrics import accuracy_score, f1_score, fbeta_score
 
 
 np.random.seed(1234)
-np.random.set_seed(1234)
+tf.random.set_seed(1234)
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 tf.autograph.set_verbosity(0)
 
@@ -57,11 +58,11 @@ def w_acc_fn(y_true, y_pred):
 
 
 class CnnModel():
-    def __init__(self, input_shape, Depth, kernelN, kernelSize, strides, l2, lr, dropR, init_bias, kinit):
+    def __init__(self, input_shape, Depth, kernelN, kernelSize, kernelEx, strides, l2, lr, dropR, init_bias, kinit, UseGlobPool):
         
         """
         >> 예제코드
-        cnn_model = CnnModel((300,300,3), 8, 4, 3, 1, 0.01, 0.003, 0.1, 0, 'orthogonal').cnn_model
+        cnn_model = CnnModel((128,512,1), 8, 4, 3, 1 ,1 , 0.01, 0.003, 0.1, 0, 'orthogonal' ,1).cnn_model
         cnn_model.summary()
         
         >> init_bias True 이면 1번으로 아니면 2번으로
@@ -79,12 +80,14 @@ class CnnModel():
         self.Depth       = Depth
         self.kernelN     = kernelN
         self.kernelSize  = kernelSize
+        self.kernelEx    = kernelEx
         self.strides     = strides
         self.l2          = l2
         self.lr          = lr
         self.dropR       = dropR
         self.init_bias   = init_bias
         self.kinit       = kinit
+        self.UseGlobPool = UseGlobPool
         self.build()
         
         
@@ -95,12 +98,24 @@ class CnnModel():
         #Input Layer
         self.input_layer = tf.keras.Input(shape = self.input_shape)
 
+        if self.kernelEx == 1:
+            if self.input_shape[0]>self.input_shape[1] :
+                kk = math.ceil(self.input_shape[0]/self.input_shape[1])
+                _kernelSize = (self.kernelSize * kk , self.kernelSize)
+            elif self.input_shape[0]<self.input_shape[1] :
+                kk = math.ceil(self.input_shape[1]/self.input_shape[0])
+                _kernelSize = (self.kernelSize, self.kernelSize * kk )
+            else :
+                _kernelSize = (self.kernelSize, self.kernelSize)
+        else :
+            _kernelSize = (self.kernelSize, self.kernelSize)  
+
         #CNN Layer
         for _Depth in range(self.Depth):
             if _Depth == 0:
-                self.conv = tf.keras.layers.Conv2D(self.kernelN * ((_Depth //2)+1), kernel_size = (self.kernelSize,self.kernelSize), padding = 'same', strides = self.strides, name = f'conv{_Depth+1}_filter', kernel_initializer = self.kinit)(self.input_layer)
+                self.conv = tf.keras.layers.Conv2D(self.kernelN * ((_Depth //2)+1), kernel_size = _kernelSize, padding = 'same', strides = self.strides, name = f'conv{_Depth+1}_filter', kernel_initializer = self.kinit)(self.input_layer)
             else :
-                self.conv = tf.keras.layers.Conv2D(self.kernelN * ((_Depth //2)+1), kernel_size = (self.kernelSize,self.kernelSize), padding = 'same', strides = self.strides, name = f'conv{_Depth+1}_filter', kernel_initializer = self.kinit)(self.conv)
+                self.conv = tf.keras.layers.Conv2D(self.kernelN * ((_Depth //2)+1), kernel_size = _kernelSize, padding = 'same', strides = self.strides, name = f'conv{_Depth+1}_filter', kernel_initializer = self.kinit)(self.conv)
 
             self.conv = tf.keras.layers.BatchNormalization(name = f'conv_{_Depth+1}_nor')(self.conv)
             self.conv = tf.keras.layers.Activation('relu', name = f'conv_{_Depth+1}_act')(self.conv)
@@ -110,8 +125,12 @@ class CnnModel():
                 self.conv = tf.keras.layers.MaxPooling2D(pool_size = 2, name = f'conv_{_Depth+1}_pooling')(self.conv)
 
         # Flatten Layer
-        self.flatten = tf.keras.layers.Flatten()(self.conv)
-        self.flatten = tf.keras.layers.Dropout(self.dropR, seed=1234)(self.flatten)
+        if self.UseGlobPool == 1:
+            self.flatten = tf.keras.layers.GlobalAveragePooling2D()(self.conv)
+        else :
+            self.flatten = tf.keras.layers.Flatten()(self.conv)
+            if self.dropR > 0 :
+                self.flatten = tf.keras.layers.Dropout(self.dropR, seed=1234)(self.flatten)
 
         # Bias Setting
         if self.init_bias != 0:
@@ -165,7 +184,7 @@ class CnnModel():
             """
             score = tf.numpy_function(my_numpy_func, [y_true, y_pred], tf.float32) #파이썬 함수를 감싸서 tf로 사용
             score = tf.cast(score, tf.float32) # return 값은 tf.float32
-            resutn score
+            return score
                     
         self.cnn_model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate = self.lr), loss = 'binary_crossentropy', metrics = ['AUC','acc',wacc]) 
         #self.cnn_model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate = self.lr)', loss = 'binary_crossentropy', metrics = ['AUC','acc',wacc], run_eagerly=true) # Deberg
