@@ -66,7 +66,7 @@ class CustomAEModel() :
 
         self.input_shape  = input_shape
         self.kernelN      = kernelN
-        self.kernelSize    = kernelSize
+        self.kernelSize   = kernelSize
         self.kernelEx     = kernelEx
         self.strides      = strides
         self.dropR        = dropR
