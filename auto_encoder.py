@@ -59,6 +59,7 @@ class CustomAEModelFinal() :
         kernelEx = 1
         poolN = 3
         strides = 1
+        latentLen = 0 or 64 (latent벡터의 길이, 0일시 latent 벡터는 없고 압축된 이미지만 존재)
         """
 
         self.input_shape  = input_shape
