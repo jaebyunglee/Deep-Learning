@@ -49,9 +49,81 @@ model = tf.keras.models.load_model(model_path, custom_objects = {'custom_activat
 def custom_activation(x):
     return tf.sigmoid(x)*255
 
+class CustomAEModelFinal() :
+
+    def __init__(self, input_shape, kernelN, kernelSize, kernelEx, strides, poolN, latentLen) :
+        """
+        input_shape = (128,512,1)
+        kernelN = (8,16,64,64,16,8)
+        kernelSize = 3
+        kernelEx = 1
+        poolN = 3
+        strides = 1
+        """
+
+        self.input_shape  = input_shape
+        self.kernelN      = kernelN
+        self.kernelSize   = kernelSize
+        self.kernelEx     = kernelEx
+        self.strides      = strides
+        self.poolN        = poolN
+        self.latentLen    = latentLen
+        self.build()
+
+    def build(self) :
+        # Kernel Expand
+        if self.kernelEx == 1:
+            if self.input_shape[0] > self.input_shape[1] :
+                kk = math.ceil(self.input_shape[0]/self.input_shape[1])
+                _kernelSize = (self.kernelSize * kk , self.kernelSize)
+                
+            elif self.input_shape[0] < self.input_shape[1] :
+                kk = math.ceil(self.input_shape[1]/self.input_shape[0]) 
+                _kernelSize = (self.kernelSize , self.kernelSize * kk)
+            else :
+                _kernelSize = (self.kernelSize, self.kernelSize)
+        else :
+            _kernelSize = (self.kernelSize, self.kernelSize)
+   
+        # Encoder
+        inputs = tf.keras.layers.Input(self.input_shape)
+        enc_l = list(range(len(self.kernelN)//2))
+        for encode_range in enc_l :
+            if encode_range == 0 :
+                conv = tf.keras.layers.Conv2D(self.kernelN[encode_range], kernel_size = _kernelSize, strides = self.strides, padding = 'same')(inputs)
+            else :
+                conv = tf.keras.layers.Conv2D(self.kernelN[encode_range], kernel_size = _kernelSize, strides = self.strides, padding = 'same')(conv)
+            conv = tf.keras.layers.BatchNormalization()(conv)
+            conv = tf.keras.layers.Activation('relu')(conv)
+            
+            if encode_range in enc_l[-self.poolN:] :
+                conv = tf.keras.layers.MaxPooling2D(pool_size = (2,2))(conv)
+        if self.latentLen > 0:
+            ori_shape = conv.shape
+            conv = tf.keras.layers.Flatten()(conv)
+            conv = tf.keras.layers.Dense(self.latentLen, name = 'latent')(conv)
+            conv = tf.keras.layers.Dense(ori_shape[1]*ori_shape[2]*ori_shape[3])(conv)
+            conv = tf.keras.layers.Reshape((ori_shape[1],ori_shape[2],ori_shape[3]))(conv)
+
+        # Decoder
+        dec_l = list(range(len(self.kernelN)//2, len(self.kernelN)))
+        for decode_range in dec_l :
+            if decode_range in dec_l[:self.poolN] :
+                conv = tf.keras.layers.Conv2DTranspose(self.kernelN[decode_range], kernel_size = _kernelSize, strides = 2, padding = 'same')(conv)
+            else :
+                conv = tf.keras.layers.Conv2D(self.kernelN[decode_range], kernel_size = _kernelSize, strides = self.strides, padding = 'same')(conv)
+            conv = tf.keras.layers.BatchNormalization()(conv)
+            conv = tf.keras.layers.Activation('relu')(conv)
+            
+            
+
+        outputs = tf.keras.layers.Conv2D(self.input_shape[-1], 1, activation = custom_activation)(conv)
+        self.model = tf.keras.Model(inputs = inputs, outputs = outputs)
+        self.model.compile(optimizer = tf.keras.optimizers.Adam(), loss = 'mse')
 
 
-class CustomAEModel() :
+
+class CustomAEModel2() :
 
     def __init__(self, input_shape, kernelN, kernelSize, kernelEx, strides, dropR, poolN) :
         """
