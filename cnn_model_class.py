@@ -36,7 +36,7 @@ EvalFormat += ', [ TRAIN ] - Loss: {:.4f}, Acc: {:.4f}, Auc: {:.4f}, Pre: {:.4f}
 EvalFormat += ', [ VALID ] - Loss: {:.4f}, Acc: {:.4f}, Auc: {:.4f}, Pre: {:.4f}, Rec: {:.4f}, F1: {:.4f}'
 
 # customprogress = CustomProgress(print_k, logger) # print_k 는 몇번마다 프린트 할 건지
-# cnn_model.fit(train_x,train_y,epochs=100,verbose = 0, callbakcs = [customprogress])
+model.fit(x,y,callbacks = [customprogress])
 class CustomProgress(Callback):
     def __init__(self, print_k, logger):
         super().__init__()
