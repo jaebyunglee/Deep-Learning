@@ -26,6 +26,7 @@ class CustomModelCheckPoint(Callback):
         super().__init__()
         self.freq = freq
         self.directory = directory
+        
     def on_epoch_begin(self, epoch, logs = None):
         if self.freq > 0 and epoch % self.freq == 0:
             self.model.save(self.directory.format(str(epoch).zfill(3)))
@@ -42,9 +43,10 @@ class CustomProgress(Callback):
         self.print_k = print_k
     
         if logger is None :
-            logger = print(flush = True)
+            logger = print
         else :
             logger = logger.info
+
         self.logger = logger
         
     def on_epoch_end(self, epoch, logs = None):
