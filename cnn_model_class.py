@@ -30,10 +30,26 @@ class CustomModelCheckPoint(Callback):
         if self.freq > 0 and epoch % self.freq == 0:
             self.model.save(self.directory.format(str(epoch).zfill(3)))
 
+EvalFormat = 'EPOCH: {}'
+EvalFormat += ', [ TRAIN ] - Loss: {:.4f}, Acc: {:.4f}, Auc: {:.4f}, Pre: {:.4f}, Rec: {:.4f}'
+EvalFormat += ', [ VALID ] - Loss: {:.4f}, Acc: {:.4f}, Auc: {:.4f}, Pre: {:.4f}, Rec: {:.4f}'
+
+# customprogress = CustomProgress(print_k, logger) # print_k 는 몇번마다 프린트 할 건지
 class CustomProgress(Callback):
+    def __init__(self, print_k, logger):
+        super().__init__()
+        
+        self.print_k = print_k
+    
+        if logger is None :
+            logger = print(flush = True)
+        else :
+            logger = logger.info
+        self.logger = logger
+        
     def on_epoch_end(self, epoch, logs = None):
-        if (epoch + 1) % 5 == 0 : 
-            print('[{}] - EPOCH : {}, Ttrain Loss : {:.4f}, Valid Loss : {:.4f}'.format(datetime.datetime.now(),epoch + 1, logs['loss'],logs['val_loss']), flush = True)
+        if (epoch + 1) % self.print_k == 0 : 
+            self.logger(EvalFormat.format(epoch + 1, logs['loss'], logs['acc'], logs['auc'], logs['precision'], logs['recall'],logs['val_loss'],logs['val_acc'],logs['val_auc'],logs['val_precision'],logs['val_recall']))
             
 
 def w_acc_fn(y_true, y_pred):
@@ -186,7 +202,7 @@ class CnnModel():
             score = tf.cast(score, tf.float32) # return 값은 tf.float32
             return score
                     
-        self.cnn_model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate = self.lr), loss = 'binary_crossentropy', metrics = ['AUC','acc',wacc]) 
+        self.cnn_model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate = self.lr), loss = 'binary_crossentropy', metrics = ['AUC','acc',wacc, tf.keras.metrics.Precision(name = 'precision'), tf.keras.metrics.Recall(name = 'recall')]) 
         #self.cnn_model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate = self.lr)', loss = 'binary_crossentropy', metrics = ['AUC','acc',wacc], run_eagerly=true) # Deberg
 
         return self.cnn_model
