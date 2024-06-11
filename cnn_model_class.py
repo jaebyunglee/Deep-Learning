@@ -1,7 +1,9 @@
-# TF 로그 끄기
+# TF 로그 끄기 (MAIN.py 코드에 있으면 됨)
 # import os
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1' # GPU 설정
+
+# import tensorflow as tf
 # tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 # tf.autograph.set_verbosity(0)
 
