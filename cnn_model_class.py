@@ -1,3 +1,4 @@
+import gc
 import math
 import datetime
 import numpy as np
@@ -36,24 +37,29 @@ EvalFormat += ', [ TRAIN ] - Loss: {:.4f}, Acc: {:.4f}, Auc: {:.4f}, Pre: {:.4f}
 EvalFormat += ', [ VALID ] - Loss: {:.4f}, Acc: {:.4f}, Auc: {:.4f}, Pre: {:.4f}, Rec: {:.4f}, F1: {:.4f}'
 
 # customprogress = CustomProgress(print_k, logger) # print_k 는 몇번마다 프린트 할 건지
-# model.fit(x,y,callbacks = [customprogress])
 class CustomProgress(Callback):
     def __init__(self, print_k, logger):
         super().__init__()
+        
         self.print_k = print_k
     
         if logger is None :
             logger = print
         else :
             logger = logger.info
+
         self.logger = logger
         
     def on_epoch_end(self, epoch, logs = None):
-        # print(logs)
+#         print(logs)
         if (epoch + 1) % self.print_k == 0 : 
             self.logger(EvalFormat.format(epoch + 1, logs['loss'], logs['acc'], logs['auc'], logs['precision'], logs['recall'], logs['f1'],logs['val_loss'],logs['val_acc'],logs['val_auc'],logs['val_precision'],logs['val_recall'],logs['val_f1']))
             
-
+    def on_train_end(self, logs = None):
+        tf.keras.backend.clear_session()
+        gc.collect()
+        
+        
 def w_acc_fn(y_true, y_pred):
     y_true = y_true.squeeze()
     y_pred = y_pred.squeeze()
@@ -75,6 +81,28 @@ def w_acc_fn(y_true, y_pred):
     return w_acc_score
 
 
+
+class F1Score(tf.keras.metrics.Metric):
+    def __init__(self, name = 'f1', **kwargs):
+        super(F1Score, self).__init__(name=name, **kwargs)
+        self.precision = tf.keras.metrics.Precision()
+        self.recall = tf.keras.metrics.Recall()
+        
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        y_pred = tf.cast(tf.greater(y_pred,0.5), tf.float32)
+        self.precision.update_state(y_true, y_pred, sample_weight)
+        self.recall.update_state(y_true, y_pred, sample_weight)
+
+    def result(self):
+        precision = self.precision.result()
+        recall = self.recall.result()
+        return 2*(precision * recall) / (precision + recall + tf.keras.backend.epsilon())
+    
+    def reset_state(self):
+        self.precision.reset_state()
+        self.recall.reset_state()
+        
+        
 class CnnModel():
     def __init__(self, input_shape, Depth, kernelN, kernelSize, kernelEx, strides, l2, lr, dropR, init_bias, kinit, UseGlobPool):
         
@@ -186,25 +214,24 @@ class CnnModel():
 #             score = tf.cast(score, tf.float32) # return 값은 tf.float32
 #             return score 
         
-        @tf.function        
-        def f1(y_true, y_pred):
-            def my_numpy_func(y_true, y_pred):
-                """
-                beta : 0.5 -> Pricision을 2배 중요하게 생각
-                beta : 2.0 -> Recall을    2배 중요하게 생각
-                """
-                y_pred = (y_pred >= 0.5) + 0
-                _score = f1_score(y_true, y_pred, zero_division = 0)
-                _score = tf.cast(_score, tf.float32) # return 값은 tf.float32
-                return _score
-            """
-            Numpy로 작성된 함수를 tf에서 사용할수 있게 적용
-            """
-            score = tf.numpy_function(my_numpy_func, [y_true, y_pred], tf.float32) #파이썬 함수를 감싸서 tf로 사용
-            score = tf.cast(score, tf.float32) # return 값은 tf.float32
-            return score
+#         @tf.function        
+#         def f1(y_true, y_pred):
+#             def my_numpy_func(y_true, y_pred):
+#                 """
+#                 beta : 0.5 -> Pricision을 2배 중요하게 생각
+#                 beta : 2.0 -> Recall을    2배 중요하게 생각
+#                 """
+#                 y_pred = (y_pred >= 0.5) + 0
+#                 _score = f1_score(y_true, y_pred, zero_division = 0)
+#                 _score = tf.cast(_score, tf.float32) # return 값은 tf.float32
+#                 return _score
+#             """
+#             Numpy로 작성된 함수를 tf에서 사용할수 있게 적용
+#             """
+#             score = tf.numpy_function(my_numpy_func, [y_true, y_pred], tf.float32) #파이썬 함수를 감싸서 tf로 사용
+#             score = tf.cast(score, tf.float32) # return 값은 tf.float32
+#             return score
                     
-        self.cnn_model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate = self.lr), loss = 'binary_crossentropy', metrics = ['AUC','acc',tf.keras.metrics.Precision(name = 'precision'), tf.keras.metrics.Recall(name = 'recall'),f1]) 
-        #self.cnn_model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate = self.lr)', loss = 'binary_crossentropy', metrics = ['AUC','acc',wacc], run_eagerly=true) # Deberg
+        self.cnn_model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate = self.lr), loss = 'binary_crossentropy', metrics = ['AUC','acc',tf.keras.metrics.Precision(name = 'precision'), tf.keras.metrics.Recall(name = 'recall'),F1Score()]) 
 
         return self.cnn_model
