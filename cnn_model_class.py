@@ -245,3 +245,23 @@ class CnnModel():
         self.cnn_model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate = self.lr), loss = 'binary_crossentropy', metrics = ['AUC','acc',tf.keras.metrics.Precision(name = 'precision'), tf.keras.metrics.Recall(name = 'recall'),F1Score()]) 
 
         return self.cnn_model
+
+
+
+
+# #-->> Pre Train Model
+# ResNet50_base_model = tf.keras.applications.ResNet50(weights= 'imagenet', include_top = False, input_shape = (None,None,3))
+
+# input_shape = (128,512,1)
+
+# input_layers = tf.keras.layers.Input(shape = input_shape)
+# # layer Freeze
+# for layer in ResNet50_base_model.layers :
+#     layer.trainable = False
+
+# # Gray Scale -> 3 Channel Convert
+# x = tf.keras.layers.Conv2D(filters=3, kernel_size = (1,1), padding = 'same')(input_layers)
+# x = ResNet50_base_model(x)
+# x = tf.keras.layers.GlobalAveragePooling2D()(x)
+# output_layers = tf.keras.layers.Dense(1, activation = 'sigmoid', name = 'dense')(x)
+# cnn_model = tf.keras.models.Model(inputs = input_layers, outputs = output_layers)
